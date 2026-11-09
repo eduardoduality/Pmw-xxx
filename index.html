@@ -11,7 +11,8 @@
 <meta name="theme-color" content="#0f172a">
 <meta name="description" content="Controle de Empréstimos e Cobranças">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzBmMTcyYSIvPjxwYXRoIGQ9Ik0yMTYgMjI0di00MGE0MCA0MCAwIDAxODAgMHY0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmJiZjI0IiBzdHJva2Utd2lkdGg9IjE4Ii8+PHJlY3QgeD0iMTc2IiB5PSIyMjQiIHdpZHRoPSIxNjAiIGhlaWdodD0iMTEwIiByeD0iMTQiIGZpbGw9IiNmYmJmMjQiLz48dGV4dCB4PSIyNTYiIHk9IjQyOCIgZm9udC1zaXplPSIxMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZmJiZjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QTVc8L3RleHQ+PC9zdmc+">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzBmMTcyYSIvPjxwYXRoIGQ9Ik0yMTYgMjI0di00MGE0MCA0MCAwIDAxODAgMHY0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmJiZjI0IiBzdHJva2Utd2lkdGg9IjE4Ii8+PHJlY3QgeD0iMTc2IiB5PSIyMjQiIHdpZHRoPSIxNjAiIGhlaWdodD0iMTEwIiByeD0iMTQiIGZpbGw9IiNmYmJmMjQiLz48dGV4dCB4PSIyNTYiIHk9IjQyOCIgZm9udC1zaXplPSIxMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZmJiZjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QTVc8L3RleHQ+PC9zdmc+">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
 <title>PMW BANK</title>
 <style>
 /* Skip artifact shell — fixed styles served beside every artifact.
@@ -2763,7 +2764,7 @@ box.innerHTML=it.length?'<div class="card"><h3>⏰ Vence hoje e nos próximos 3 
 function abrirHistorico(){var l=(ESTADO.historico||[]).slice().reverse().slice(0,150),m=document.createElement("div");m.className="modal on";
 m.innerHTML='<div class="box"><h3>📜 Histórico de alterações</h3><div>'+(l.length?l.map(function(x){var d=new Date(x.t);return '<div style="border-bottom:1px solid #e2e8f0;padding:6px 0;font-size:13px"><span class="muted">'+d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+'</span><br>'+esc(x.x)+'</div>';}).join(""):'<div class="muted">Nenhuma alteração registrada ainda.</div>')+'</div><div style="margin-top:12px;text-align:right"><button type="button" class="btn" id="histFechar">Fechar</button></div></div>';
 m.addEventListener("click",function(e){if(e.target===m||e.target.id==="histFechar")m.remove();});document.body.appendChild(m);}
-function extrasUI(){renderAlertaVenc();var a=$("areaInstalar");if(a&&!$("btnHist")){var b=document.createElement("button");b.type="button";b.className="btn";b.id="btnHist";b.textContent="📜 Histórico de alterações";b.addEventListener("click",abrirHistorico);a.parentNode.insertBefore(b,a);}}
+function extrasUI(){renderAlertaVenc();try{bioUI();}catch(e){}var a=$("areaInstalar");if(a&&!$("btnHist")){var b=document.createElement("button");b.type="button";b.className="btn";b.id="btnHist";b.textContent="📜 Histórico de alterações";b.addEventListener("click",abrirHistorico);a.parentNode.insertBefore(b,a);}}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-abrir-dev]");if(b)abrirDetalhe(b.getAttribute("data-abrir-dev"));});
 </script>
 <script>
@@ -2775,7 +2776,7 @@ var nOk=ok.cloneNode(true),nCa=ca.cloneNode(true);ok.replaceWith(nOk);ca.replace
 function fechar(){m.classList.remove("on");}
 nCa.addEventListener("click",fechar);
 function tentar(){var sn=inp.value;if(!sn)return;var b=lerBlob();if(!b){fechar();fn();return;}nOk.disabled=true;
-derivarChave(sn,b642ab(b.salt),b.iter||250000).then(function(ch){return decifrar(b,ch);}).then(function(){nOk.disabled=false;fechar();_tokSenha=true;try{fn();}finally{_tokSenha=false;}},function(){nOk.disabled=false;erros++;inp.value="";msg.textContent="Senha incorreta.";if(erros>=3){fechar();toast("Senha incorreta 3 vezes. Operação cancelada.");}});}
+derivarChave(sn,b642ab(b.salt),b.iter||250000).then(function(ch){return decifrar(b,ch);}).then(function(){nOk.disabled=false;fechar();_tokSenha=true;try{fn(sn);}finally{_tokSenha=false;}},function(){nOk.disabled=false;erros++;inp.value="";msg.textContent="Senha incorreta.";if(erros>=3){fechar();toast("Senha incorreta 3 vezes. Operação cancelada.");}});}
 nOk.addEventListener("click",tentar);inp.onkeydown=function(e){if(e.key==="Enter")tentar();};}
 var _ac=abrirConfirm;abrirConfirm=function(t,x,cb){_ac(t,x,function(){exigirSenha(cb);});};
 var _sf=salvarDevedorFormOk;salvarDevedorFormOk=function(){if(contexto.editarId){var nm=($("dNome").value||"").trim();exigirSenha(function(){try{logAlt("Devedor editado: "+nm);}catch(e){}_sf();});}else _sf();};
@@ -2801,6 +2802,26 @@ function modo(){try{var m=localStorage.getItem(K);return ic[m]?m:"auto";}catch(e
 function aplica(){var m=modo(),h=new Date().getHours(),noite=m==="escuro"||(m==="auto"&&(h>=18||h<6));document.documentElement.setAttribute("data-noite",noite?"1":"0");var b=document.getElementById("btnTema");if(b){b.textContent=ic[m];b.title=nm[m];b.setAttribute("aria-label",nm[m]);}}
 var b=document.getElementById("btnTema");if(b)b.addEventListener("click",function(){var o=["auto","escuro","claro"],m=o[(o.indexOf(modo())+1)%3];try{localStorage.setItem(K,m);}catch(e){}aplica();if(window.toast)toast(nm[m]);});
 aplica();setInterval(aplica,60000);})();
+</script>
+<script>
+var BIO_KEY="pmwbank_bio",BIO_SALT=new TextEncoder().encode("pmwbank-bio-v1");
+function bioSuportada(){return !!(window.PublicKeyCredential&&window.isSecureContext&&navigator.credentials&&window.crypto&&crypto.subtle);}
+function bioPrf(idBuf){return navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:"public-key",id:idBuf}],userVerification:"required",extensions:{prf:{eval:{first:BIO_SALT}}}}}).then(function(as){var r=as.getClientExtensionResults();if(!r.prf||!r.prf.results||!r.prf.results.first)throw new Error("Este aparelho não suporta biometria segura (exige iOS 18 ou mais novo).");return crypto.subtle.importKey("raw",r.prf.results.first,"AES-GCM",false,["encrypt","decrypt"]);});}
+function bioAtivar(){if(!bioSuportada()){toast("Biometria indisponível neste aparelho ou endereço.");return;}
+exigirSenha(function(senha){if(!senha){toast("Não foi possível ativar a biometria.");return;}var credId;
+navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:"PMW BANK"},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:"pmwbank",displayName:"PMW BANK"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required",residentKey:"preferred"},extensions:{prf:{}}}}).then(function(cred){var x=cred.getClientExtensionResults();if(!x.prf||!x.prf.enabled)throw new Error("Este aparelho não suporta biometria segura (exige iOS 18 ou mais novo).");credId=cred.rawId;return bioPrf(credId);}).then(function(k){var iv=crypto.getRandomValues(new Uint8Array(12));return crypto.subtle.encrypt({name:"AES-GCM",iv:iv},k,new TextEncoder().encode(senha)).then(function(ci){localStorage.setItem(BIO_KEY,JSON.stringify({id:ab2b64(credId),iv:ab2b64(iv.buffer),c:ab2b64(ci)}));toast("Biometria ativada.");bioUI();});}).catch(function(e){toast(e&&e.name==="NotAllowedError"?"Biometria cancelada.":(e&&e.message)||"Falha ao ativar biometria.");});});}
+function bioDesativar(){try{localStorage.removeItem(BIO_KEY);}catch(e){}toast("Biometria desativada.");bioUI();}
+function bioDesbloquear(){var raw=localStorage.getItem(BIO_KEY);if(!raw)return;var o=JSON.parse(raw),b=lerBlob();
+bioPrf(b642ab(o.id)).then(function(k){return crypto.subtle.decrypt({name:"AES-GCM",iv:new Uint8Array(b642ab(o.iv))},k,b642ab(o.c));}).then(function(buf){var pw=new TextDecoder().decode(buf);
+return derivarChave(pw,b642ab(b.salt),b.iter||250000).then(function(ch){return decifrar(b,ch);}).then(function(){$("campoSenha").value=pw;desbloquearSenha();},function(){try{localStorage.removeItem(BIO_KEY);}catch(e){}bioUI();toast("A senha mudou. Entre com a senha e ative a biometria de novo.");});}).catch(function(){toast("Biometria falhou. Use a senha.");});}
+function bioUI(){if(!bioSuportada())return;var tem=!!localStorage.getItem(BIO_KEY),lb=document.getElementById("btnBio"),ref=document.getElementById("btnDesbloquear");
+if(!lb&&ref){lb=document.createElement("button");lb.type="button";lb.id="btnBio";lb.className=ref.className;lb.style.cssText="margin-top:8px;background:transparent;border:1px solid currentColor";lb.textContent="🔐 Entrar com biometria";lb.addEventListener("click",bioDesbloquear);ref.parentNode.insertBefore(lb,ref.nextSibling);}
+if(lb)lb.style.display=tem?"block":"none";
+var a=document.getElementById("areaInstalar"),cb=document.getElementById("btnBioCfg");
+if(a&&!cb){cb=document.createElement("button");cb.type="button";cb.className="btn";cb.id="btnBioCfg";cb.addEventListener("click",function(){if(localStorage.getItem(BIO_KEY))bioDesativar();else bioAtivar();});a.parentNode.insertBefore(cb,a);}
+if(cb)cb.textContent=tem?"🔐 Desativar biometria":"🔐 Ativar biometria";}
+bioUI();
+if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
 </script>
 </body>
 </html>
