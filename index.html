@@ -14,6 +14,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.json">
 <title>PMW BANK</title>
+<meta name="app-versao" content="2026.11.10-a">
 <style>
 /* Skip artifact shell — fixed styles served beside every artifact.
    Tokens, utilities and components (basecoat 1.0 markup, no CDN); artifacts
@@ -2771,7 +2772,7 @@ box.innerHTML=it.length?'<div class="card"><h3>⏰ Vence hoje e nos próximos 3 
 function abrirHistorico(){var l=(ESTADO.historico||[]).slice().reverse().slice(0,150),m=document.createElement("div");m.className="modal on";
 m.innerHTML='<div class="box"><h3>📜 Histórico de alterações</h3><div>'+(l.length?l.map(function(x){var d=new Date(x.t);return '<div style="border-bottom:1px solid #e2e8f0;padding:6px 0;font-size:13px"><span class="muted">'+d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+'</span><br>'+esc(x.x)+'</div>';}).join(""):'<div class="muted">Nenhuma alteração registrada ainda.</div>')+'</div><div style="margin-top:12px;text-align:right"><button type="button" class="btn" id="histFechar">Fechar</button></div></div>';
 m.addEventListener("click",function(e){if(e.target===m||e.target.id==="histFechar")m.remove();});document.body.appendChild(m);}
-function extrasUI(){renderAlertaVenc();try{bioUI();}catch(e){}var a=$("areaInstalar");if(a&&!$("btnHist")){var b=document.createElement("button");b.type="button";b.className="btn";b.id="btnHist";b.textContent="📜 Histórico de alterações";b.addEventListener("click",abrirHistorico);a.parentNode.insertBefore(b,a);}}
+function extrasUI(){renderAlertaVenc();try{injetaAtualizarCfg();}catch(e){}try{bioUI();}catch(e){}var a=$("areaInstalar");if(a&&!$("btnHist")){var b=document.createElement("button");b.type="button";b.className="btn";b.id="btnHist";b.textContent="📜 Histórico de alterações";b.addEventListener("click",abrirHistorico);a.parentNode.insertBefore(b,a);}}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-abrir-dev]");if(b)abrirDetalhe(b.getAttribute("data-abrir-dev"));});
 </script>
 <script>
@@ -2842,5 +2843,17 @@ var _and=abrirNovoDevedor;abrirNovoDevedor=function(ed){_and(ed);var c=$("dSoJur
 $("dSoJuros").addEventListener("change",function(){try{atualizarDevForm();}catch(e){}});
 </script>
 <script>$("pSoJuros").addEventListener("change",atualizarProposta);</script>
+<script>
+var APP_VERSAO=(document.querySelector('meta[name="app-versao"]')||{}).content||"?";
+async function atualizarApp(){try{toast("Atualizando...");if(navigator.serviceWorker){var rs=await navigator.serviceWorker.getRegistrations();for(var i=0;i<rs.length;i++)await rs[i].unregister();}if(window.caches){var ks=await caches.keys();for(var j=0;j<ks.length;j++)await caches.delete(ks[j]);}}catch(e){}location.replace(location.pathname+"?v="+Date.now());}
+async function verificarAtualizacao(silencioso){if(location.protocol!=="https:"){if(!silencioso)toast("A verificação só funciona no endereço publicado.");return;}
+try{var r=await fetch(location.pathname+"?c="+Date.now(),{cache:"no-store"});var t=await r.text();var m=t.match(/<meta name="app-versao" content="([^"]+)"/);var nova=m?m[1]:null;
+if(nova&&nova!==APP_VERSAO){marcaNova();if(!silencioso){toast("Nova versão encontrada. Atualizando...");setTimeout(atualizarApp,800);}}else if(!silencioso)toast("Você já está na versão mais recente ("+APP_VERSAO+").");}catch(e){if(!silencioso)toast("Sem conexão para verificar a atualização.");}}
+function marcaNova(){document.querySelectorAll(".btnAtualizar").forEach(function(b){b.textContent="🔄 Atualizar para a nova versão";b.style.borderColor="#16a34a";b.style.color="#16a34a";});}
+function criaBtnAtualizar(){var b=document.createElement("button");b.type="button";b.className="btnAtualizar btn";b.style.cssText="margin-top:10px;background:transparent;border:1px solid currentColor;color:inherit";b.textContent="🔄 Verificar atualização";b.addEventListener("click",function(){verificarAtualizacao(false);});return b;}
+function injetaAtualizar(){var ref=document.getElementById("msgBloqueio")||document.getElementById("btnDesbloquear");if(!ref||document.getElementById("btnAtualizar"))return;var b=criaBtnAtualizar();b.id="btnAtualizar";var v=document.createElement("div");v.style.cssText="font-size:12px;opacity:.7;margin-top:6px";v.textContent="Versão "+APP_VERSAO;ref.parentNode.appendChild(b);ref.parentNode.appendChild(v);}
+function injetaAtualizarCfg(){var a=document.getElementById("areaInstalar");if(!a||document.getElementById("btnAtualizarCfg"))return;var b=criaBtnAtualizar();b.id="btnAtualizarCfg";b.style.color="";b.textContent="🔄 Verificar atualização (versão "+APP_VERSAO+")";a.parentNode.insertBefore(b,a);}
+injetaAtualizar();setTimeout(function(){verificarAtualizacao(true);},2500);
+</script>
 </body>
 </html>
