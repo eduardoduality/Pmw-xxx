@@ -1332,6 +1332,7 @@ html[data-noite="1"] [style*="color:#0f172a"],html[data-noite="1"] [style*="colo
 <div class="field"><label for="pTel">Telefone</label><input class="inp" id="pTel" placeholder="(11) 99999-0000"><small>Usado no botão WhatsApp.</small></div>
 <div class="field"><label for="pValor">Valor a emprestar</label><input class="inp" id="pValor" inputmode="decimal" placeholder="6.700,00"><small>Aceita 6700, 6.700,00 ou 6700.00.</small></div>
 <div class="field"><label for="pParc">Quantidade de parcelas</label><input class="inp" id="pParc" inputmode="numeric" placeholder="25"><small>Use 1 para pagamento único.</small></div>
+<div class="field"><label style="display:flex;gap:8px;align-items:flex-start;font-weight:600"><input type="checkbox" id="pSoJuros" style="margin-top:3px"> <span>Só juros: paga o juros todo mês e o valor emprestado no último mês</span></label></div>
 <div class="field"><label for="pVParc">Valor da parcela</label><input class="inp" id="pVParc" inputmode="decimal" placeholder="550,00"><small>Valor de cada parcela mensal.</small></div>
 <div class="field"><label for="pData">Data do empréstimo</label><input class="inp" type="date" id="pData"><small>Base para calcular o primeiro vencimento.</small></div>
 <div class="field"><label for="pRegra">Regra de vencimento</label><select class="inp" id="pRegra"><option value="uteis5">5º dia útil</option><option value="fixo">Dia fixo do mês</option><option value="corr30">30 dias corridos</option></select><small id="pRegraInfo">Com 1 parcela o vencimento é automático: 30 dias corridos.</small></div>
@@ -2422,6 +2423,7 @@ function gerarTextoProposta(){
   var c=ESTADO.config;
   var linhas="";
   var parcelas=[];
+  var soJ=!!($("pSoJuros")&&$("pSoJuros").checked);var ult=Math.round((valor+vp)*100)/100;
   var regra=$("pRegra").value;
   for(var i=0;i<(n||0);i++){
     var venc;
@@ -2437,20 +2439,20 @@ function gerarTextoProposta(){
   parcelas.forEach(function(v,idx){
     var idParc=n===1?"Parcela única":"Parcela "+pad2(idx+1)+"/"+pad2(n);
     var vencTxt=c.pref.incluirDia?fmtData(v):(n===1?fmtData(v):MESES[v.getMonth()]+"/"+v.getFullYear());
-    linhas+="- "+idParc+", com vencimento em "+vencTxt+", no valor de "+fmtBRL(vp)+"\n";
+    linhas+="- "+idParc+", com vencimento em "+vencTxt+", no valor de "+fmtBRL(soJ&&idx===n-1?ult:vp)+"\n";
   });
-  var resumoCond=n===1?"pagamento em parcela única no valor de "+fmtBRL(vp):(n||0)+" parcelas mensais no valor de "+fmtBRL(vp)+" cada";
+  var resumoCond=soJ?(n===1?"pagamento em parcela única no valor de "+fmtBRL(ult)+" (valor emprestado + juros de "+fmtBRL(vp)+")":"pagamento somente dos juros, de "+fmtBRL(vp)+" por mês, nas parcelas 1 a "+(n-1)+", e, na última parcela ("+n+"), o valor emprestado de "+fmtBRL(valor)+" mais o juros de "+fmtBRL(vp)+", totalizando "+fmtBRL(ult)):n===1?"pagamento em parcela única no valor de "+fmtBRL(vp):(n||0)+" parcelas mensais no valor de "+fmtBRL(vp)+" cada";
   var txt="Olá, "+nome+". Segue a proposta de empréstimo:\n\n"+
     "Proposta de empréstimo no valor de "+fmtBRL(valor)+", com "+resumoCond+".\n\n"+
     "Cronograma previsto de vencimentos:\n"+linhas+"\n"+
-    "Sobre os pagamentos:\n"+
+    "Sobre os pagamentos:\n"+(soJ?"- O valor emprestado será devolvido integralmente na última parcela.\n":"")+
     "- O pagamento é considerado realizado somente após o envio do comprovante.\n"+
     "- Em caso de atraso, será cobrado um valor adicional sobre a parcela.\n"+
-    "- O atraso de uma parcela não antecipa as demais.\n\n"+
+    "- O atraso de uma parcela não antecipa as demais.\n\n"+(soJ?"Se estiver de acordo com estas condições, é só me confirmar por aqui.\n\n":"")+
     "Qualquer dúvida, estou à disposição. Tenha um bom dia.";
   return limparEmojis(txt);
 }
-function atualizarProposta(){var valor=parseValor($("pValor").value),n=parseInteiro($("pParc").value),vp=parseValor($("pVParc").value);var r=resumoTaxa(valor,vp,n);if(r){$("pTaxaBig").textContent=r.mensal.toFixed(2).replace(".",",")+"% a.m.";$("pTaxaCaption").textContent="Calculada pela Tabela Price, apenas informativa.";$("pAnual").textContent=r.anual.toFixed(2).replace(".",",")+"% a.a.";$("pTotal").textContent=fmtBRL(r.total);$("pJuros").textContent=fmtBRL(r.juros);$("pCusto").textContent=r.custo.toFixed(2).replace(".",",")+"%";}}
+function atualizarProposta(){var valor=parseValor($("pValor").value),n=parseInteiro($("pParc").value),vp=parseValor($("pVParc").value);var soJp=!!($("pSoJuros")&&$("pSoJuros").checked);var r=soJp?(valor>0&&vp>0&&n>=1?{mensal:vp/valor*100,anual:(Math.pow(1+vp/valor,12)-1)*100,total:Math.round((valor+vp*n)*100)/100,juros:Math.round(vp*n*100)/100,custo:vp*n/valor*100}:null):resumoTaxa(valor,vp,n);if(r){$("pTaxaBig").textContent=r.mensal.toFixed(2).replace(".",",")+"% a.m.";$("pTaxaCaption").textContent=soJp?"Só juros: o valor emprestado volta na última parcela.":"Calculada pela Tabela Price, apenas informativa.";$("pAnual").textContent=r.anual.toFixed(2).replace(".",",")+"% a.a.";$("pTotal").textContent=fmtBRL(r.total);$("pJuros").textContent=fmtBRL(r.juros);$("pCusto").textContent=r.custo.toFixed(2).replace(".",",")+"%";}try{var lbp=document.querySelector('label[for="pVParc"]');if(lbp)lbp.textContent=soJp?"Juros de cada mês":"Valor da parcela";}catch(e){}}
 
 function mostrarAvisoProposta(msg,tipo){var el=$("avisoProposta");if(!el){el=document.createElement("div");el.id="avisoProposta";el.className="aviso";var form=$("pNome")&&$("pNome").closest(".card");if(form)form.insertBefore(el,form.firstChild);else document.body.insertBefore(el,document.body.firstChild);}el.textContent=msg;el.className="aviso "+(tipo||"");el.style.display="block";clearTimeout(el._h);el._h=setTimeout(function(){el.style.display="none";},tipo==="ok"?4000:12000);}
 function mostrarTextoWhats(texto){var box=$("avisoProposta");mostrarAvisoProposta("Não foi possível abrir o WhatsApp automaticamente. Copie a mensagem abaixo e cole na conversa.");if(!box)return;var ta=document.createElement("textarea");ta.value=texto;ta.className="inp";ta.style.height="160px";ta.style.marginTop="8px";box.appendChild(ta);var b=document.createElement("button");b.type="button";b.className="btn sm";b.textContent="Copiar";b.style.marginTop="8px";b.setAttribute("data-action","prop-copiar-texto");b.addEventListener("click",function(){ta.select();copiarTexto(texto);});box.appendChild(b);}
@@ -2635,8 +2637,8 @@ case "filtro":filtroAtual=el.getAttribute("data-f");document.querySelectorAll("#
 case "prop-gerar":{var txt=gerarTextoProposta();$("pTexto").textContent=txt;atualizarProposta();break;}
 case "prop-whats":{enviarWhats();break;}
 case "prop-copiar":copiarTexto(gerarTextoProposta());break;
-case "prop-salvar":{var pn=$("pNome").value.trim();abrirNovoDevedor(null);$("dNome").value=pn;$("dValor").value=$("pValor").value;$("dNParc").value=$("pParc").value;$("dVParc").value=$("pVParc").value;$("dDataEmp").value=$("pData").value||isoDeData(hojeMeia());atualizarDevForm();break;}
-case "prop-limpar":["pNome","pTel","pValor","pParc","pVParc","pData"].forEach(function(id){$(id).value="";});$("pTexto").textContent="Clique em Gerar proposta para ver o texto.";$("pTaxaBig").textContent="—";break;
+case "prop-salvar":{var pn=$("pNome").value.trim();abrirNovoDevedor(null);$("dSoJuros").checked=!!$("pSoJuros").checked;$("dNome").value=pn;$("dValor").value=$("pValor").value;$("dNParc").value=$("pParc").value;$("dVParc").value=$("pVParc").value;$("dDataEmp").value=$("pData").value||isoDeData(hojeMeia());atualizarDevForm();break;}
+case "prop-limpar":$("pSoJuros").checked=false;["pNome","pTel","pValor","pParc","pVParc","pData"].forEach(function(id){$(id).value="";});$("pTexto").textContent="Clique em Gerar proposta para ver o texto.";$("pTaxaBig").textContent="—";break;
 case "rec-ant":recMesRef=new Date(recMesRef.getFullYear(),recMesRef.getMonth()-1,1);renderRecebimentos();break;
 case "rec-prox":recMesRef=new Date(recMesRef.getFullYear(),recMesRef.getMonth()+1,1);renderRecebimentos();break;
 case "rec-ano":recAnoMode=!recAnoMode;renderRecebimentos();break;
@@ -2835,5 +2837,6 @@ $("dTaxa").textContent=(j/v*100).toFixed(2).replace(".",",")+"% a.m.";$("dTaxaDe
 var _and=abrirNovoDevedor;abrirNovoDevedor=function(ed){_and(ed);var c=$("dSoJuros");if(c)c.checked=!!(ed&&ed.soJuros);try{atualizarDevForm();}catch(e){}};
 $("dSoJuros").addEventListener("change",function(){try{atualizarDevForm();}catch(e){}});
 </script>
+<script>$("pSoJuros").addEventListener("change",atualizarProposta);</script>
 </body>
 </html>
