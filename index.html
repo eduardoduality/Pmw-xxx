@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.json">
 <title>PMW BANK</title>
-<meta name="app-versao" content="2026.11.21-a">
+<meta name="app-versao" content="2026.11.21-b">
 <style>
 /* Skip artifact shell — fixed styles served beside every artifact.
    Tokens, utilities and components (basecoat 1.0 markup, no CDN); artifacts
@@ -2102,7 +2102,7 @@ function reRenderizarTudo() {
 }
 
 function renderTudo(){if(!ESTADO)return;try{extrasUI();}catch(e){}try{atualizarBotaoInstalar();}catch(e){}renderMesVisao();renderGerais();renderNovosCards();renderDevedores();renderFaixaMeses();renderPropostaDatalist();renderConfig();renderDiagnostico();renderRecebimentos();}
-function calcEncargosPorMes(){var hj=hojeMeia();var meses=[];for(var i=5;i>=0;i--){var d=new Date(hj.getFullYear(),hj.getMonth()-i,1);meses.push({anoMes:d.getFullYear()+"-"+pad2(d.getMonth()+1),rotulo:MESES[d.getMonth()]+"/"+d.getFullYear(),valor:0,ano:d.getFullYear(),mes:d.getMonth()});}
+function calcEncargosPorMes(){var hj=mesRef;var meses=[];for(var i=5;i>=0;i--){var d=new Date(hj.getFullYear(),hj.getMonth()-i,1);meses.push({anoMes:d.getFullYear()+"-"+pad2(d.getMonth()+1),rotulo:MESES[d.getMonth()]+"/"+d.getFullYear(),valor:0,ano:d.getFullYear(),mes:d.getMonth()});}
 ESTADO.devedores.forEach(function(d){d.parcelasArr.forEach(function(p){var al=alocarEncargos(p);(p.pagamentos||[]).forEach(function(x,ix){var dt=dataDeIso(x.data);if(!dt)return;var enc=al[ix]||0;if(!enc)return;meses.forEach(function(m){if(m.ano===dt.getFullYear()&&m.mes===dt.getMonth())m.valor+=enc;});});});});
 return meses.map(function(m){return {anoMes:m.anoMes,rotulo:m.rotulo,valor:Math.round(m.valor*100)/100};});}
 var CACHE_PREV=null;
@@ -2149,8 +2149,8 @@ function blocoPrevisto(c,modo){
   if(!olhoOculto){h+='<div style="display:flex;height:14px;border-radius:999px;overflow:hidden;margin-top:10px;background:#e2e8f0"><i style="width:'+pP+'%;background:#16a34a"></i><i style="width:'+pL+'%;background:#0ea5e9"></i><i style="width:'+pA+'%;background:#d97706"></i></div>';}
   return h;
 }
-function renderNovosCards(){if(!$("cobradoMes"))return;var meses=calcEncargosPorMes();var max=Math.max.apply(null,meses.map(function(m){return m.valor;}).concat([0.01]));var tot=0,cnt=0;meses.forEach(function(m){tot+=m.valor;if(m.valor>0)cnt++;});var media=cnt?tot/cnt:0;
-var h="";if(tot<=0.009){h='<div class="muted">Nenhum encargo recebido ainda. Os valores aparecem aqui conforme você registra pagamentos com atraso.</div>';}else{meses.slice().reverse().forEach(function(m,idx){var atual=idx===0;var pct=Math.round(m.valor/max*100);h+='<div style="padding:8px;border-radius:8px;margin-bottom:6px;'+(atual?'background:#f1f5f9;':'')+'"><div class="row"><span>'+m.rotulo+(atual?' <small class="muted">(em curso)</small>':'')+'</span><strong style="color:#d97706">'+valorOculto(m.valor)+'</strong></div><div class="barra"><i style="width:'+pct+'%;background:#d97706"></i></div></div>';});
+function renderNovosCards(){if(!$("cobradoMes"))return;try{$("prevPeriodo").options[0].text="Mês: "+MESES[mesRef.getMonth()]+"/"+mesRef.getFullYear();}catch(e){}var meses=calcEncargosPorMes();var max=Math.max.apply(null,meses.map(function(m){return m.valor;}).concat([0.01]));var tot=0,cnt=0;meses.forEach(function(m){tot+=m.valor;if(m.valor>0)cnt++;});var media=cnt?tot/cnt:0;
+var h="";if(tot<=0.009){h='<div class="muted">Nenhum encargo recebido ainda. Os valores aparecem aqui conforme você registra pagamentos com atraso.</div>';}else{meses.slice().reverse().forEach(function(m,idx){var atual=idx===0;var pct=Math.round(m.valor/max*100);h+='<div style="padding:8px;border-radius:8px;margin-bottom:6px;'+(atual?'background:#f1f5f9;':'')+'"><div class="row"><span>'+m.rotulo+(atual?' <small class="muted">(selecionado)</small>':'')+'</span><strong style="color:#d97706">'+valorOculto(m.valor)+'</strong></div><div class="barra"><i style="width:'+pct+'%;background:#d97706"></i></div></div>';});
 var ants=meses.slice().reverse();var atualV=ants[0].valor,antV=ants[1]?ants[1].valor:0;var varTxt="";if(antV>0){var v=Math.round((atualV-antV)/antV*100);varTxt=olhoOculto?"":(v>=0?'<span style="color:#16a34a">▲ +'+v+'% vs. mês anterior</span>':'<span style="color:#dc2626">▼ '+v+'% vs. mês anterior</span>');}
 h+='<div class="row" style="margin-top:10px;border-top:1px solid #e2e8f0;padding-top:8px"><span>Total no período: <strong>'+valorOculto(tot)+'</strong></span><span>Média mensal: <strong>'+valorOculto(media)+'</strong></span></div>'+(varTxt?'<div style="margin-top:4px">'+varTxt+'</div>':'');}
 $("cobradoMes").innerHTML=h;
@@ -2604,9 +2604,9 @@ if(ESTADO&&ESTADO.config.seg.exigirRevelar&&olhoOculto){contexto.revelarPend=tru
 olhoOculto=!olhoOculto;renderTudo();break;
 case "ir-config":mudarAba("config");break;
 case "aba":mudarAba(el.getAttribute("data-aba"));break;
-case "mes-ant":mesRef=new Date(mesRef.getFullYear(),mesRef.getMonth()-1,1);renderMesVisao();renderFaixaMeses();break;
-case "mes-prox":mesRef=new Date(mesRef.getFullYear(),mesRef.getMonth()+1,1);renderMesVisao();renderFaixaMeses();break;
-case "ir-mes":mesRef=new Date(parseInt(el.getAttribute("data-y"),10),parseInt(el.getAttribute("data-m"),10),1);renderMesVisao();renderFaixaMeses();break;
+case "mes-ant":mesRef=new Date(mesRef.getFullYear(),mesRef.getMonth()-1,1);renderMesVisao();renderFaixaMeses();renderNovosCards();renderPerdoado();break;
+case "mes-prox":mesRef=new Date(mesRef.getFullYear(),mesRef.getMonth()+1,1);renderMesVisao();renderFaixaMeses();renderNovosCards();renderPerdoado();break;
+case "ir-mes":mesRef=new Date(parseInt(el.getAttribute("data-y"),10),parseInt(el.getAttribute("data-m"),10),1);renderMesVisao();renderFaixaMeses();renderNovosCards();renderPerdoado();break;
 case "pagar-parc":abrirModalPagamento(el.getAttribute("data-dev"),parseInt(el.getAttribute("data-n"),10));break;
 case "diaria-abrir":abrirDiaria(el.getAttribute("data-dev"),parseInt(el.getAttribute("data-n"),10));break;
 case "msg-diaria":abrirMensagemDiaria(el.getAttribute("data-dev"),parseInt(el.getAttribute("data-n"),10));break;
@@ -2874,10 +2874,10 @@ document.body.appendChild(ov);ov.querySelector("#pdCancel").onclick=function(){o
 ov.querySelector("#pdOk").onclick=function(){var v=Math.round(parseValor(ov.querySelector("#pdValor").value)*100)/100,m=ov.querySelector("#pdMsg");if(!(v>0)){m.textContent="Informe um valor maior que zero.";return;}if(v>saldo+0.009){m.textContent="O valor não pode passar do saldo devedor ("+fmtBRL(saldo)+").";return;}var obs=ov.querySelector("#pdObs").value.trim();ov.remove();exigirSenha(function(){aplicarPerdao(p,v,obs);});};}
 function aplicarPerdao(p,v,obs){p.perdoes=p.perdoes||[];p.perdoes.push({data:isoDeData(hojeMeia()),valor:v,obs:obs});try{logAlt("Perdão de "+fmtBRL(v)+" - "+nomeDe(p)+" (parcela "+p.n+")"+(obs?": "+obs:""));}catch(e){}if(valorDevido(p)<=0.009){p.pago=true;p.dataPag=isoDeData(hojeMeia());}salvarDados();reRenderizarTudo();if(detalheDevAtual)abrirDetalhe(detalheDevAtual);toast("Perdão de "+fmtBRL(v)+" registrado.");}
 function renderPerdoado(){var c=$("cobradoMes");if(!c||!ESTADO)return;var card=c.closest(".card")||c.parentNode,box=$("perdoadoMes");if(!box){box=document.createElement("div");box.id="perdoadoMes";card.parentNode.insertBefore(box,card.nextSibling);}
-var hj=hojeMeia(),ms=[],tot=0,qtd=0;for(var i=0;i<6;i++){var d=new Date(hj.getFullYear(),hj.getMonth()-i,1);ms.push({rot:MESES[d.getMonth()]+"/"+d.getFullYear(),a:d.getFullYear(),m:d.getMonth(),v:0});}
+var hj=mesRef,ms=[],tot=0,qtd=0;for(var i=0;i<6;i++){var d=new Date(hj.getFullYear(),hj.getMonth()-i,1);ms.push({rot:MESES[d.getMonth()]+"/"+d.getFullYear(),a:d.getFullYear(),m:d.getMonth(),v:0});}
 ESTADO.devedores.forEach(function(dv){dv.parcelasArr.forEach(function(p){(p.perdoes||[]).forEach(function(x){var dt=dataDeIso(x.data);if(!dt)return;var v=Number(x.valor)||0;tot+=v;qtd++;ms.forEach(function(m){if(m.a===dt.getFullYear()&&m.m===dt.getMonth())m.v+=v;});});});});
 var max=Math.max.apply(null,ms.map(function(m){return m.v;}).concat([0.01]));
-box.innerHTML='<div class="card"><h3>🤝 Perdoado por mês</h3><div class="muted">Valores que você perdoou em negociações</div>'+(qtd?'<div style="margin-top:10px">'+ms.map(function(m,idx){return '<div style="padding:8px;margin-bottom:6px"><div class="row"><span>'+m.rot+(idx===0?' <small class="muted">(em curso)</small>':'')+'</span><strong style="color:#7c3aed">'+valorOculto(m.v)+'</strong></div><div class="barra"><div style="height:100%;width:'+Math.round(m.v/max*100)+'%;background:#7c3aed"></div></div></div>';}).join("")+'</div><div class="row" style="border-top:1px solid #e2e8f0;padding-top:8px"><span>Total perdoado: <strong>'+valorOculto(tot)+'</strong></span></div>':'<div class="muted" style="margin-top:10px">Nenhum valor perdoado ainda. Use o botão "🤝 Perdoar valor" na parcela.</div>')+'</div>';}
+box.innerHTML='<div class="card"><h3>🤝 Perdoado por mês</h3><div class="muted">Valores que você perdoou em negociações</div>'+(qtd?'<div style="margin-top:10px">'+ms.map(function(m,idx){return '<div style="padding:8px;margin-bottom:6px"><div class="row"><span>'+m.rot+(idx===0?' <small class="muted">(selecionado)</small>':'')+'</span><strong style="color:#7c3aed">'+valorOculto(m.v)+'</strong></div><div class="barra"><div style="height:100%;width:'+Math.round(m.v/max*100)+'%;background:#7c3aed"></div></div></div>';}).join("")+'</div><div class="row" style="border-top:1px solid #e2e8f0;padding-top:8px"><span>Total perdoado: <strong>'+valorOculto(tot)+'</strong></span></div>':'<div class="muted" style="margin-top:10px">Nenhum valor perdoado ainda. Use o botão "🤝 Perdoar valor" na parcela.</div>')+'</div>';}
 var _mk=new Date().getFullYear()+"-"+new Date().getMonth();document.addEventListener("visibilitychange",function(){if(!document.hidden&&ESTADO){var k=new Date().getFullYear()+"-"+new Date().getMonth();if(k!==_mk){_mk=k;ajustarMesInicial();renderTudo();}}});
 </script>
 </body>
